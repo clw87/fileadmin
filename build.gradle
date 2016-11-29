@@ -1,82 +1,75 @@
+
 buildscript {
 	ext { springBootVersion = '1.4.1.RELEASE' }
 	repositories {
-		maven { url "http://10.204.12.34:8081/repository/maven-public/" }
+		maven { url "http://127.0.0.1:8081/repository/maven-public/" }
+		maven { url "http://repo.spring.io/snapshot" }
+		maven { url "http://repo.spring.io/milestone" }
+		maven { url "http://maven.oschina.net/content/groups/public/"}
 		jcenter()
 	}
 	dependencies { classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}") }
+
 }
 
+repositories {
+		maven { url "http://127.0.0.1:8081/repository/maven-public/" }
+		jcenter()
+}
+
+tasks.withType(JavaCompile) {
+	options.encoding = "UTF-8"
+}
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'spring-boot'
 
-jar {
-	baseName = 'esadmintools'
 
-	version = '0.3'
+
+version=0.1
+jar {
+	baseName = 'indexfile'
+	manifest {
+		attributes("Implementation-Title": "Gradle",
+		"Implementation-Version": version,
+        'Main-Class': 'com.chang.IndexFile')
+    }
+    //from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-repositories {
-	maven { url "http://10.204.12.34:8081/repository/maven-public" }
-	jcenter()
-}
-
 dependencies {
 	compile("org.springframework.boot:spring-boot-starter-web")
-	compile("org.springframework.boot:spring-boot-starter-thymeleaf")
-	compile( 'org.elasticsearch:elasticsearch:2.3.3')
-	compile('org.springframework.session:spring-session')
-	compile ('io.springfox:springfox-swagger2:2.4.0')
-	compile ('io.springfox:springfox-swagger-ui:2.4.0')
+	compile( 'org.elasticsearch:elasticsearch:5.0.1',
+			'org.elasticsearch.client:transport:5.0.1')
+	compile ('org.springframework:spring-aspects:4.3.4.RELEASE')
 	compile (
-			'org.springframework:spring-aspects',
 			'org.codehaus.jackson:jackson-core-asl:1.1.0',
 			'com.github.fge:json-schema-validator:2.2.5'
 			)
 	compile(
-        'org.apache.lucene:lucene-core:5.5.0',
-        'org.apache.lucene:lucene-queryparser:5.5.0',
-        'org.apache.lucene:lucene-analyzers-common:5.5.0'
+        'org.apache.lucene:lucene-core:6.2.1',
+        'org.apache.lucene:lucene-queryparser:6.2.1',
+        'org.apache.lucene:lucene-analyzers-common:6.2.1'
     	)
-    compile('org.apache.shiro:shiro-core:1.3.1',
-        'org.apache.shiro:shiro-web:1.3.1',
-        'org.apache.shiro:shiro-ehcache:1.3.1',
-        'org.apache.shiro:shiro-spring:1.3.1'
-        )
-        
-    compile('org.springframework.boot:spring-boot-starter-data-jpa')//{exclude group: 'org.hibernate', module: 'hibernate-entitymanager'}
-    compile('org.hibernate:hibernate-core:5.1.0.Final',
-    	'org.hibernate:hibernate-entitymanager:5.1.0.Final',
-    	'org.hibernate:hibernate-validator:5.2.4.Final',
-        'com.h2database:h2'
-        )
-    	
-	compile("org.springframework.boot:spring-boot-starter-security")
-	compile 'org.springframework.boot:spring-boot-starter-jdbc'
+	compile ('org.json:json:20160810')
 	compile ('mysql:mysql-connector-java:6.0.3')
-	compile ("org.springframework.boot:spring-boot-starter-redis")
-	testCompile('io.springfox:springfox-staticdocs:2.4.0')
-
-	compile 'io.jsonwebtoken:jjwt:0.6.0'
+	compile ('io.jsonwebtoken:jjwt:0.6.0')
+	compile ('org.apache.logging.log4j:log4j-api:2.7')
+	compile ('org.apache.logging.log4j:log4j-core:2.7')
+	compile ('org.apache.logging.log4j:log4j-1.2-api:2.7')
 	
-	compile('org.apache.mahout:mahout-math:0.12.2',
-			'org.apache.mahout:mahout-hdfs:0.12.2')
-			
-	compile files('libs/IKAnalyzer2012FF_u1.jar')
-	
-
-	testCompile('io.springfox:springfox-staticdocs:2.4.0')
-	testCompile("org.springframework.boot:spring-boot-starter-test")
+	compile files ('lib/IKAnalyzer2012FF_u1.jar',
+					'lib/elasticsearch-analysis-ik-5.0.1.jar'
+					)
 }
 
 
 eclipse {
 	classpath {
 		containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
-		containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
+		containers ('org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8','classpath:lib')
 	}
 }
 

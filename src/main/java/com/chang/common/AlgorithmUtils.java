@@ -1,11 +1,14 @@
-package com.chang.push.common;
+package com.chang.common;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.MessageDigest;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -19,6 +22,8 @@ import org.wltea.analyzer.cfg.DefaultConfig;
 import org.wltea.analyzer.core.IKSegmenter;
 import org.wltea.analyzer.core.Lexeme;
 import org.wltea.analyzer.dic.Dictionary;
+
+import com.chang.entity.FileEntity;
 
 /***************************************************************
  * 
@@ -128,7 +133,7 @@ public class AlgorithmUtils {
 		String md5_value = "";
 		char hexDigits[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 		try {
-			java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+			MessageDigest md = MessageDigest.getInstance("MD5");
 			md.update(anyStr.getBytes());
 			byte tmp[] = md.digest(); 
 			char str[] = new char[16 * 2]; 
@@ -144,7 +149,6 @@ public class AlgorithmUtils {
 		}
 		return md5_value;
 	}
-	
 	
 	public static String getIpAddr(HttpServletRequest request) {
         String ip = request.getHeader("x-forwarded-for");
@@ -208,6 +212,67 @@ public class AlgorithmUtils {
 			}
 			return result;
 		}
+	    
+	    /**
+	     * 递归类
+	     * 
+	     * @author chang
+	     *
+	     */
+	    private static class Recursion{
+	    	
+	    	/**
+	    	 * 递归获取目录下的文件名字列表
+	    	 * @param path 要递归的目录或者文件路径
+	    	 * @param isSimpleName 是否仅返回文件名字，否的话返回绝对路径
+	    	 * @return
+	    	 */
+	    	private static List<FileEntity> getFileNameList(String path){
+	    		List<FileEntity> result = new ArrayList<FileEntity>();
+	    		if(null == path || path.trim().length() == 0){
+	    			return result;
+	    		}
+	    		
+	    		File originDir = new File(path);
+	    		if(originDir.isDirectory()){
+	    			if(originDir.listFiles() == null ){
+	    				return result;
+	    			}
+	    			List<File> filePath = (List<File>) Arrays.asList(originDir.listFiles());
+	    			if(null == filePath || filePath .size() == 0){
+	    				return result;
+	    			}
+	    			for(File p : filePath){
+	    				if(null == p){
+	    					continue;
+	    				}
+	    				List<FileEntity> tempResult = getFileNameList(p.getAbsolutePath());
+	    				if(tempResult != null && tempResult.size() > 0){
+	    					result.addAll(tempResult);
+	    				}
+	    			}
+	    		}else if(originDir.isFile()){
+	    			FileEntity entity = new FileEntity();
+	    			entity.setFullName(originDir.getAbsolutePath());
+	    			entity.setName(originDir.getName());
+	    			entity.setId(getMD5(originDir.getName()));
+	    			if(entity.getName().lastIndexOf(".") == -1){
+	    				entity.setExtension("");
+	    			}else{
+	    				entity.setExtension(entity.getName().substring(entity.getName().lastIndexOf(".")+1));
+	    				entity.setName(entity.getName().substring(0, entity.getName().lastIndexOf(".")));
+	    			}
+	    			entity.setLastModify(Long.parseLong( AlgorithmUtils.stampToDate(String.valueOf(originDir.lastModified()) ) ) );
+	    			result.add(entity);
+	    		}
+	    		
+	    		return result;
+	    	}
+    	}
+	    public static List<FileEntity> recursionFileNameForDir(String dir){
+	    	List<FileEntity> result = Recursion.getFileNameList(dir);
+	    	return result;
+	    }
     
 	
 //    public static void main(String[] args) throws Exception{
